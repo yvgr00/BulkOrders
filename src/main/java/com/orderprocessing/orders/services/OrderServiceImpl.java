@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.orderprocessing.orders.dto.RequestDTO;
+import com.orderprocessing.orders.dto.RequestUpdateDTO;
 import com.orderprocessing.orders.dto.ResponseDTO;
 import com.orderprocessing.orders.entities.Customer;
 import com.orderprocessing.orders.entities.Item;
@@ -19,6 +20,7 @@ import com.orderprocessing.orders.entities.PaymentMethod;
 import com.orderprocessing.orders.entities.Transaction;
 import com.orderprocessing.orders.repository.CustomerRepository;
 import com.orderprocessing.orders.repository.ItemRepository;
+import com.orderprocessing.orders.repository.OrderLineItemsRepository;
 import com.orderprocessing.orders.repository.OrderRepository;
 import com.orderprocessing.orders.repository.PaymentMethodRepository;
 
@@ -36,6 +38,9 @@ public class OrderServiceImpl implements OrderService {
 
 	@Autowired
 	private CustomerRepository customerRepo;
+	
+	@Autowired
+	private OrderLineItemsRepository orderLineItemsRepository;
 
 	private  static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
 	@Override
@@ -175,6 +180,50 @@ public class OrderServiceImpl implements OrderService {
 		orderRepository.save(order);
 
 		return "Success";
+	}
+
+	@Override
+	public String updateOrders(RequestUpdateDTO updateOrders) {
+		
+//		get orderid from ordermessage
+		
+		Optional<Order> result = orderRepository.findById(updateOrders.getOrderId());
+		
+		Order order = null;
+		if(result.isPresent()) {
+			order = result.get();
+		}else {
+			throw new RuntimeException("Did not find order - "+ updateOrders.getOrderId());
+		}
+		
+        
+		Double totalAmt = 0.0;
+//		get item price from item table
+		
+		List<OrderLineItems> orderLineItems = updateOrders.getOrderLineItems();
+		
+		for(int i=0; i<orderLineItems.size();i++) {
+			Optional<Item> resultItem = itemRepository.findById(orderLineItems.get(i).getOrderItemId());
+			Item item = null;
+			if(resultItem.isPresent()) {
+				item = resultItem.get();
+			}else {
+				throw new RuntimeException("Did not find order - "+ updateOrders.getOrderId());
+			}
+			
+			totalAmt += item.getItemPrice()*orderLineItems.get(i).getQuantity();
+			
+			
+		}
+		
+		order.setOrderLineItems(orderLineItems);
+		order.setOrderTotalAmount(totalAmt);
+		
+		orderRepository.save(order);
+		
+//		calculate item price and reduce it from order total amount and update in order table
+		
+		return "success";
 	}
 
 }

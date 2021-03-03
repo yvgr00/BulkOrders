@@ -14,6 +14,8 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import com.orderprocessing.orders.dto.RequestDTO;
+import com.orderprocessing.orders.dto.RequestUpdateDTO;
+
 
 @Configuration
 public class ProducerConfiguration {
@@ -42,5 +44,30 @@ public class ProducerConfiguration {
 	public KafkaTemplate<String, RequestDTO> kafkaTemplate(){
 		return new KafkaTemplate<>(producerFactory());
 	}
+	
+	@Bean
+	public ProducerFactory<String, RequestUpdateDTO> orderUpdateFactory(){
+		Map<String, Object> config = new HashMap<>();
+
+		config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+		config.put(ProducerConfig.ACKS_CONFIG, "all");
+		config.put(ProducerConfig.RETRIES_CONFIG, 0);
+		config.put(ProducerConfig.BATCH_SIZE_CONFIG, 4);
+		config.put(ProducerConfig.LINGER_MS_CONFIG, 1);
+		config.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
+		config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+		config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+
+		return new DefaultKafkaProducerFactory<>(config);
+	}
+
+	@Bean
+	public KafkaTemplate<String, RequestUpdateDTO> kafkaOrderTemplate(){
+		return new KafkaTemplate<>(orderUpdateFactory());
+	}
+	
+	
+	
+	
 
 }

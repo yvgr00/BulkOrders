@@ -11,6 +11,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 import com.orderprocessing.orders.dto.RequestDTO;
+import com.orderprocessing.orders.dto.RequestUpdateDTO;
 import com.orderprocessing.orders.services.OrderService;
 
 @Service
@@ -32,6 +33,19 @@ public class Consumer {
 		logger.info("Received message='{}' with partition-offset='{}'", messages.getShipping_address_line1());
 
 		logger.info("All batch messages received");
+
+	}
+	
+	@KafkaListener(id = "updates", topics = "updateOrders", containerFactory = "kafkaListenerUpdateContainerFactory")
+	public void consume(@Payload RequestUpdateDTO messages) throws IOException {
+		
+		logger.info("Received message='{}' with partition-offset='{}'", messages.getOrderId());
+
+		logger.info("All batch messages received");
+
+		orderService.updateOrders(messages);
+
+		
 
 	}
 

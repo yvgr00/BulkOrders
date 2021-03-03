@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.orderprocessing.orders.dto.RequestBulkDTO;
 import com.orderprocessing.orders.dto.RequestDTO;
+import com.orderprocessing.orders.dto.RequestListDTO;
+import com.orderprocessing.orders.dto.RequestUpdateDTO;
 import com.orderprocessing.orders.dto.ResponseDTO;
 import com.orderprocessing.orders.entities.Order;
 import com.orderprocessing.orders.producers.Producer;
@@ -32,8 +34,13 @@ import com.orderprocessing.orders.services.OrderService;
 public class OrderController {
 
 	private  static final Logger logger = LoggerFactory.getLogger(OrderController.class);
+	
 	@Autowired
 	private OrderService orderService;
+	
+	@Autowired
+	private Producer producer;
+	
 
 	public OrderController(OrderService theOrderService) {
 
@@ -89,8 +96,6 @@ public class OrderController {
 		return response;
 	}
 
-	@Autowired
-	private Producer producer;
 
 	@PostMapping(value = "/bulkorders")
 	public ResponseEntity<String> sendBulkOrders(@Valid @RequestBody RequestBulkDTO theBulkOrder) {
@@ -123,6 +128,35 @@ public class OrderController {
 
 		return new ResponseEntity<String>("success",httpStatus);
 	}
+	
+	@PostMapping(value = "/updateorders")
+	public ResponseEntity<String> updateBulkOrders(@Valid @RequestBody RequestListDTO theBulkOrder) {
+		
+		
+		logger.info("passed this message");
+
+		HttpStatus httpStatus = HttpStatus.OK;
+		
+		List<RequestUpdateDTO> requestDTO = theBulkOrder.getRequestUpdateDTO();
+		
+		logger.info("hhgggg "+theBulkOrder.getRequestUpdateDTO().get(0).getOrderId());
+
+//		for(int i=0;i<requestDTO.size();i++) {
+//
+//
+//			RequestUpdateDTO order = requestDTO.get(i);
+//
+//
+//			producer.sendMessage(order);
+//
+//
+//		}
+
+
+		return new ResponseEntity<String>("success",httpStatus);
+	}
+	
+	
 
 	public static double round(double value, int places) {
 		if (places < 0) throw new IllegalArgumentException();

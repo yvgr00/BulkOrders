@@ -13,9 +13,9 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import com.orderprocessing.orders.dto.RequestDTO;
+import com.orderprocessing.orders.dto.RequestUpdateDTO;
 
 @EnableKafka
 @Configuration
@@ -46,6 +46,32 @@ public class ConsumerConfiguartion {
 	public ConcurrentKafkaListenerContainerFactory<String, RequestDTO> kafkaListenerContainerFactory(){
 		ConcurrentKafkaListenerContainerFactory<String, RequestDTO> factory = new ConcurrentKafkaListenerContainerFactory<>();
 		factory.setConsumerFactory(consumerFactory());
+		factory.setBatchListener(true);
+		return factory;
+	}
+	
+	@Bean
+	public ConsumerFactory<String, RequestUpdateDTO> consumerUpdateFactory() {
+		Map<String, Object> props = new HashMap<>();
+		JsonDeserializer<RequestUpdateDTO> deserializer = new JsonDeserializer<>(RequestUpdateDTO.class);
+		deserializer.setRemoveTypeHeaders(false);
+		deserializer.addTrustedPackages("*");
+		deserializer.setUseTypeMapperForKey(true);
+		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializer);
+		props.put(ConsumerConfig.GROUP_ID_CONFIG, "updates");
+		props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "4");
+		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+
+		return new DefaultKafkaConsumerFactory<>(props,new StringDeserializer(), deserializer);
+	}
+
+	@Bean
+	public ConcurrentKafkaListenerContainerFactory<String, RequestUpdateDTO> kafkaListenerUpdateContainerFactory(){
+		ConcurrentKafkaListenerContainerFactory<String, RequestUpdateDTO> factory = new ConcurrentKafkaListenerContainerFactory<>();
+		factory.setConsumerFactory(consumerUpdateFactory());
 		factory.setBatchListener(true);
 		return factory;
 	}
