@@ -20,9 +20,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.orderprocessing.orders.dto.RequestBulkDTO;
 import com.orderprocessing.orders.dto.RequestDTO;
 import com.orderprocessing.orders.dto.ResponseDTO;
 import com.orderprocessing.orders.entities.Order;
+import com.orderprocessing.orders.producers.Producer;
 import com.orderprocessing.orders.services.OrderService;
 
 @RestController
@@ -89,6 +91,62 @@ public class OrderController {
 		String response = orderService.deleteById(theId);
 
 		return response;
+	}
+	
+	@Autowired
+	private Producer producer;
+	
+	@PostMapping(value = "/bulkorders")
+	public ResponseEntity<String> sendBulkOrders(@Valid @RequestBody RequestBulkDTO theBulkOrder) {
+		
+		 logger.info("passed this message");
+		 
+		 
+//		 logger.info("message"+theBulkOrder.size());
+		HttpStatus httpStatus = HttpStatus.OK;
+		
+//		for(int i =0;i<theBulkOrder.size();i++) {
+//			
+//			RequestDTO order = theBulkOrder.get(i);
+//			Double totalAmnt = order.getOrderTotalAmount();
+//			List<Double> paymentAmnts = order.getPaymentAmount();
+//			Double paidAmntTotal = paymentAmnts.stream().mapToDouble(Double::doubleValue).sum();
+//			
+//			if(round(totalAmnt,2) != round(paidAmntTotal,2)) {
+//				httpStatus = HttpStatus.BAD_REQUEST;
+//				logger.info("Payments not ok. Need "+totalAmnt+". Received "+paidAmntTotal);
+//				return new ResponseEntity<String>("payment not ok",httpStatus);
+//			}
+//			
+//			producer.sendMessage(order);
+//			
+//		}
+		
+//		logger.info("ghhgtyfttggff   "+theBulkOrder.getOrders().get(0).getCustomer().getFirstName());
+//		logger.info("ghhgtyfttggff   "+theBulkOrder.getOrders().get(1).getCustomer().getFirstName());
+		List<RequestDTO> orders = theBulkOrder.getOrders();
+		for(int i=0;i<orders.size();i++) {
+			
+			
+			RequestDTO order = orders.get(i);
+			Double totalAmnt = order.getOrderTotalAmount();
+			List<Double> paymentAmnts = order.getPaymentAmount();
+			Double paidAmntTotal = paymentAmnts.stream().mapToDouble(Double::doubleValue).sum();
+			
+			if(round(totalAmnt,2) != round(paidAmntTotal,2)) {
+				httpStatus = HttpStatus.BAD_REQUEST;
+				logger.info("Payments not ok. Need "+totalAmnt+". Received "+paidAmntTotal);
+				return new ResponseEntity<String>("payment not ok",httpStatus);
+			}
+			
+			producer.sendMessage(order);
+			
+			
+			
+		}
+		
+		
+		return new ResponseEntity<String>("success",httpStatus);
 	}
 
 	public static double round(double value, int places) {
