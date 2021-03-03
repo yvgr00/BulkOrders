@@ -141,16 +141,16 @@ public class OrderController {
 		
 		logger.info("hhgggg "+theBulkOrder.getRequestUpdateDTO().get(0).getOrderId());
 
-//		for(int i=0;i<requestDTO.size();i++) {
-//
-//
-//			RequestUpdateDTO order = requestDTO.get(i);
-//
-//
-//			producer.sendMessage(order);
-//
-//
-//		}
+		for(int i=0;i<requestDTO.size();i++) {
+
+
+			RequestUpdateDTO order = requestDTO.get(i);
+
+
+			producer.sendMessage(order);
+
+
+		}
 
 
 		return new ResponseEntity<String>("success",httpStatus);

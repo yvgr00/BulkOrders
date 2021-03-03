@@ -185,7 +185,6 @@ public class OrderServiceImpl implements OrderService {
 	@Override
 	public String updateOrders(RequestUpdateDTO updateOrders) {
 		
-//		get orderid from ordermessage
 		
 		Optional<Order> result = orderRepository.findById(updateOrders.getOrderId());
 		
@@ -198,30 +197,32 @@ public class OrderServiceImpl implements OrderService {
 		
         
 		Double totalAmt = 0.0;
-//		get item price from item table
 		
 		List<OrderLineItems> orderLineItems = updateOrders.getOrderLineItems();
 		
 		for(int i=0; i<orderLineItems.size();i++) {
-			Optional<Item> resultItem = itemRepository.findById(orderLineItems.get(i).getOrderItemId());
-			Item item = null;
+			Optional<OrderLineItems> resultItem = orderLineItemsRepository.findById(orderLineItems.get(i).getOrderItemId());
+			OrderLineItems orderItem = null;
 			if(resultItem.isPresent()) {
-				item = resultItem.get();
+				orderItem = resultItem.get();
 			}else {
-				throw new RuntimeException("Did not find order - "+ updateOrders.getOrderId());
+				throw new RuntimeException("Did not find orderItemId - "+ updateOrders.getOrderLineItems().get(i).getOrderItemId());
 			}
+			
+			Item item = orderItem.getItem();
 			
 			totalAmt += item.getItemPrice()*orderLineItems.get(i).getQuantity();
 			
+			orderLineItems.get(i).setItem(item);
+			orderLineItems.get(i).setOrder(order);
 			
 		}
+		
 		
 		order.setOrderLineItems(orderLineItems);
 		order.setOrderTotalAmount(totalAmt);
 		
 		orderRepository.save(order);
-		
-//		calculate item price and reduce it from order total amount and update in order table
 		
 		return "success";
 	}
