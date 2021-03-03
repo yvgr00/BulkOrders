@@ -34,18 +34,12 @@ import com.orderprocessing.orders.services.OrderService;
 public class OrderController {
 
 	private  static final Logger logger = LoggerFactory.getLogger(OrderController.class);
-	
+
 	@Autowired
 	private OrderService orderService;
-	
+
 	@Autowired
 	private Producer producer;
-	
-
-	public OrderController(OrderService theOrderService) {
-
-		this.orderService = theOrderService;
-	}
 
 	@GetMapping("/order/{id}")
 	public Order getOrderById(@PathVariable("id") final String theId) {
@@ -128,17 +122,17 @@ public class OrderController {
 
 		return new ResponseEntity<String>("success",httpStatus);
 	}
-	
+
 	@PostMapping(value = "/updateorders")
 	public ResponseEntity<String> updateBulkOrders(@Valid @RequestBody RequestListDTO theBulkOrder) {
-		
-		
+
+
 		logger.info("passed this message");
 
 		HttpStatus httpStatus = HttpStatus.OK;
-		
+
 		List<RequestUpdateDTO> requestDTO = theBulkOrder.getRequestUpdateDTO();
-		
+
 		logger.info("hhgggg "+theBulkOrder.getRequestUpdateDTO().get(0).getOrderId());
 
 		for(int i=0;i<requestDTO.size();i++) {
@@ -155,8 +149,8 @@ public class OrderController {
 
 		return new ResponseEntity<String>("success",httpStatus);
 	}
-	
-	
+
+
 
 	public static double round(double value, int places) {
 		if (places < 0) throw new IllegalArgumentException();
