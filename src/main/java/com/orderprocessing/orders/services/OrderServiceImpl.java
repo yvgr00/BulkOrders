@@ -40,7 +40,7 @@ public class OrderServiceImpl implements OrderService {
 	private  static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
 	@Override
 	public Order findOrderById(String theId) {
-		// TODO Auto-generated method stub
+
 		Optional<Order> result = orderRepository.findById(theId);
 
 		Order order = null;
@@ -55,7 +55,7 @@ public class OrderServiceImpl implements OrderService {
 
 	@Override
 	public ResponseDTO saveOrder(RequestDTO theOrder) {
-		//check if order amount is correct
+
 		ResponseDTO result = new ResponseDTO();
 		double orderTotal = 0;
 		for(int j=0; j<theOrder.getOrderLineItems().size(); j++) {
@@ -76,6 +76,7 @@ public class OrderServiceImpl implements OrderService {
 			result.setMessage("Did not match order sub total");
 			return result;
 		}
+
 		// add tax
 		orderTotal = orderTotal + orderTotal*0.0625;
 		if(theOrder.getOrderTotalAmount() != orderTotal) {
@@ -84,7 +85,7 @@ public class OrderServiceImpl implements OrderService {
 			return result;
 		}
 
-		// TODO Auto-generated method stub
+
 		Customer cust = new Customer();
 		cust.setFirstName(theOrder.getCustomer().getFirstName());
 		cust.setLastName(theOrder.getCustomer().getLastName());
@@ -160,19 +161,19 @@ public class OrderServiceImpl implements OrderService {
 
 	@Override
 	public String deleteById(String theId) {
-		// TODO Auto-generated method stub
+
 		Optional<Order> result = orderRepository.findById(theId);
-		
+
 		Order order = null;
 		if(result.isPresent()) {
 			order = result.get();
 		}else {
 			throw new RuntimeException("Did not find order - "+theId);
 		}
-		
+
 		order.setOrderStatus("Canceled");
 		orderRepository.save(order);
-		
+
 		return "Success";
 	}
 

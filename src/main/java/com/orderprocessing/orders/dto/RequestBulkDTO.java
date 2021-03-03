@@ -14,8 +14,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RequestBulkDTO {
-	
-	
+
+
 
 	private List<RequestDTO> orders;
 }
