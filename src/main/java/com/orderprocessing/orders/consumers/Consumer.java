@@ -25,7 +25,7 @@ public class Consumer {
 	private OrderService orderService;
 
 
-	@KafkaListener(id = "batch", topics = "${spring.kafka.topic.app}"	)
+	@KafkaListener(id = "batch", topics = "${spring.kafka.topic.create}")
 	public void consume(@Payload RequestDTO messages) throws IOException {
 
 		orderService.saveOrder(messages);
@@ -36,7 +36,7 @@ public class Consumer {
 
 	}
 	
-	@KafkaListener(id = "updates", topics = "updateOrders", containerFactory = "kafkaListenerUpdateContainerFactory")
+	@KafkaListener(id = "updates", topics = "${spring.kafka.topic.update}", containerFactory = "kafkaListenerUpdateContainerFactory")
 	public void consume(@Payload RequestUpdateDTO messages) throws IOException {
 		
 		logger.info("Received message='{}' with partition-offset='{}'", messages.getOrderId());
