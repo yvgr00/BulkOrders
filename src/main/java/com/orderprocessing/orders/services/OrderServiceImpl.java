@@ -43,6 +43,7 @@ public class OrderServiceImpl implements OrderService {
 	private OrderLineItemsRepository orderLineItemsRepository;
 
 	private  static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
+	
 	@Override
 	public Order findOrderById(String theId) {
 
@@ -52,7 +53,7 @@ public class OrderServiceImpl implements OrderService {
 		if(result.isPresent()) {
 			order = result.get();
 		}else {
-			throw new RuntimeException("Did not find order - "+theId);
+			return order;
 		}
 
 		return order;
@@ -173,7 +174,7 @@ public class OrderServiceImpl implements OrderService {
 		if(result.isPresent()) {
 			order = result.get();
 		}else {
-			throw new RuntimeException("Did not find order - "+theId);
+			return null;
 		}
 
 		order.setOrderStatus("Canceled");

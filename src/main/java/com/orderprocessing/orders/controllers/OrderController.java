@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,10 +43,31 @@ public class OrderController {
 	private Producer producer;
 
 	@GetMapping("/order/{id}")
-	public Order getOrderById(@PathVariable("id") final String theId) {
+	public ResponseEntity<ResponseDTO> getOrderById(@Valid @PathVariable("id") final String theId) {
+
+		HttpStatus httpStatus = HttpStatus.OK;
+		ResponseDTO responseDto = new ResponseDTO();
+
+		if(theId==null) {
+			httpStatus = HttpStatus.BAD_REQUEST;
+			responseDto.setOrder(null);
+			responseDto.setMessage("Please send a valid orderId");
+			return new ResponseEntity<ResponseDTO>(responseDto,httpStatus);
+		}
 		Order response = orderService.findOrderById(theId);
 
-		return response;
+		if(response==null) {
+
+			httpStatus = HttpStatus.NOT_FOUND;
+			responseDto.setOrder(response);
+			responseDto.setMessage("Did not find the orderId - "+theId);
+			return new ResponseEntity<ResponseDTO>(responseDto,httpStatus);
+		}
+
+		responseDto.setOrder(response);
+		responseDto.setMessage("Found the orderID - "+theId);
+
+		return new ResponseEntity<ResponseDTO>(responseDto,httpStatus);
 	}
 
 
@@ -57,6 +79,12 @@ public class OrderController {
 
 		HttpStatus httpStatus = HttpStatus.OK;
 		ResponseDTO responseDto = new ResponseDTO();
+
+		if(theOrder.equals(null) || theOrder.toString().equals("{}")) {
+			httpStatus = HttpStatus.BAD_REQUEST;
+			responseDto.setMessage("Please send valid order object");
+			return new ResponseEntity<ResponseDTO>(responseDto, httpStatus);
+		}
 
 		Double totalAmnt = theOrder.getOrderTotalAmount();
 		List<Double> paymentAmnts = theOrder.getPaymentAmount();
@@ -84,22 +112,39 @@ public class OrderController {
 
 
 	@DeleteMapping("/order/{id}")
-	public String cancelOrderById(@PathVariable("id") final String theId) {
-		String response = orderService.deleteById(theId);
-
-		return response;
-	}
-
-
-	@PostMapping(value = "/bulkorders")
-	public ResponseEntity<String> sendBulkOrders(@Valid @RequestBody RequestBulkDTO theBulkOrder) {
-
-		logger.info("passed this message");
+	public ResponseEntity<String> cancelOrderById(@PathVariable("id") final String theId) {
 
 		HttpStatus httpStatus = HttpStatus.OK;
 
+		if(theId==null) {
+			httpStatus = HttpStatus.BAD_REQUEST;
+			return new ResponseEntity<String>("Please send a valid orderId",httpStatus);
+		}
+		String response = orderService.deleteById(theId);
+
+		if(response==null) {
+			httpStatus = HttpStatus.NOT_FOUND;
+			return new ResponseEntity<String>("orderId not found",httpStatus);
+		}
+
+		return new ResponseEntity<String>("canceled the order - "+theId,httpStatus);
+	}
+
+
+	@PostMapping(value = "/bulkorders", consumes = {MediaType.APPLICATION_JSON_VALUE}, 
+			produces = {MediaType.APPLICATION_JSON_VALUE})
+	public ResponseEntity<String> sendBulkOrders(@Valid @RequestBody RequestBulkDTO theBulkOrder) {
+
+		HttpStatus httpStatus = HttpStatus.OK;
+
+		if(theBulkOrder.getOrders()==null) {
+			httpStatus = HttpStatus.BAD_REQUEST;
+			return new ResponseEntity<String>("Please send valid orders",httpStatus);
+		}
 
 		List<RequestDTO> orders = theBulkOrder.getOrders();
+
+
 		for(int i=0;i<orders.size();i++) {
 
 
@@ -113,40 +158,26 @@ public class OrderController {
 				logger.info("Payments not ok. Need "+totalAmnt+". Received "+paidAmntTotal);
 				return new ResponseEntity<String>("payment not ok",httpStatus);
 			}
-
 			producer.sendMessage(order);
-
-
 		}
-
-
 		return new ResponseEntity<String>("success",httpStatus);
 	}
 
-	@PostMapping(value = "/updateorders")
+	@PutMapping(value = "/updateorders")
 	public ResponseEntity<String> updateBulkOrders(@Valid @RequestBody RequestListDTO theBulkOrder) {
-
-
-		logger.info("passed this message");
-
 		HttpStatus httpStatus = HttpStatus.OK;
+
+		if(theBulkOrder.getRequestUpdateDTO()==null) {
+			httpStatus = HttpStatus.BAD_REQUEST;
+			new ResponseEntity<String>("Please send valid orders",httpStatus);
+		}
 
 		List<RequestUpdateDTO> requestDTO = theBulkOrder.getRequestUpdateDTO();
 
-		logger.info("hhgggg "+theBulkOrder.getRequestUpdateDTO().get(0).getOrderId());
-
 		for(int i=0;i<requestDTO.size();i++) {
-
-
 			RequestUpdateDTO order = requestDTO.get(i);
-
-
 			producer.sendMessage(order);
-
-
 		}
-
-
 		return new ResponseEntity<String>("success",httpStatus);
 	}
 
